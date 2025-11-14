@@ -1,10 +1,10 @@
 import javafx.geometry.Insets;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.scene.Scene;
 
 public class RestaurantMenu {
 
@@ -12,6 +12,9 @@ public class RestaurantMenu {
     private final Label[] labels = new Label[items.length];
 
     private TextArea outputArea;
+    private Label totalLabel;
+
+    private double totalPrice = 0.0;
 
     public void start(Stage stage) {
         VBox root = new VBox(10);
@@ -22,16 +25,18 @@ public class RestaurantMenu {
 
         root.getChildren().add(title);
 
+        // Create clickable + hoverable labels
         for (int i = 0; i < items.length; i++) {
-            Label label = new Label(items[i].toString());
+            MenuItem menuItem = items[i];
+            Label label = new Label(menuItem.toString());
             label.setStyle("-fx-font-size: 16px; -fx-padding: 5px;");
             labels[i] = label;
 
             final int index = i;
 
-            // CLICK HANDLER (just prints, no selection)
+            // CLICK → add to list and update total
             label.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
-                showSelected(items[index]);
+                addItem(menuItem);
             });
 
             // HOVER EFFECT
@@ -45,31 +50,37 @@ public class RestaurantMenu {
                 );
             });
 
-            // REMOVE HOVER EFFECT
+            // REMOVE EFFECT ON EXIT
             label.addEventHandler(MouseEvent.MOUSE_EXITED, e -> {
-                label.setStyle(
-                        "-fx-font-size: 16px; " +
-                                "-fx-padding: 5px;"
-                );
+                label.setStyle("-fx-font-size: 16px; -fx-padding: 5px;");
             });
 
             root.getChildren().add(label);
         }
 
+        // TextArea showing items
         outputArea = new TextArea();
         outputArea.setEditable(false);
         outputArea.setPromptText("Selections will appear here...");
         outputArea.setPrefHeight(150);
-
         root.getChildren().add(outputArea);
 
-        Scene scene = new Scene(root, 400, 450);
-        stage.setTitle("Restaurant Menu");
+        // TOTAL LABEL
+        totalLabel = new Label("Total: 0.00 RON");
+        totalLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+        root.getChildren().add(totalLabel);
+
+        Scene scene = new Scene(root, 400, 500);
         stage.setScene(scene);
+        stage.setTitle("Restaurant Menu");
         stage.show();
     }
 
-    private void showSelected(MenuItem item) {
-        outputArea.appendText("Selected: " + item + "\n");
+    // Adds an item to the list and updates the total
+    private void addItem(MenuItem item) {
+        outputArea.appendText(item.getName() + " - " + item.getPrice() + " RON\n");
+
+        totalPrice += item.getPrice();
+        totalLabel.setText(String.format("Total: %.2f RON", totalPrice));
     }
 }
