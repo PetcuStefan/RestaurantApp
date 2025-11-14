@@ -1,7 +1,8 @@
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.input.KeyCode;
+import javafx.scene.control.TextArea;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -10,6 +11,9 @@ public class RestaurantMenu {
     private int selectedIndex = 0;
     private final MenuItem[] items = MenuItem.values();
     private final Label[] labels = new Label[items.length];
+
+    // Area to show output
+    private TextArea outputArea;
 
     public void start(Stage stage) {
         VBox root = new VBox(10);
@@ -20,32 +24,35 @@ public class RestaurantMenu {
 
         root.getChildren().add(title);
 
-        // Create label for each menu item
+        // Create UI labels for each menu item
         for (int i = 0; i < items.length; i++) {
             Label label = new Label(items[i].toString());
-            label.setStyle("-fx-font-size: 16px;");
+            label.setStyle("-fx-font-size: 16px; -fx-padding: 5px;");
             labels[i] = label;
+
+            final int index = i;
+
+            // 💡 CLICK HANDLER
+            label.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
+                selectedIndex = index;
+                refreshHighlight();
+                showSelected(items[index]);
+            });
+
             root.getChildren().add(label);
         }
 
-        // Highlight the first item
-        refreshHighlight();
+        // Text output area
+        outputArea = new TextArea();
+        outputArea.setEditable(false);
+        outputArea.setPromptText("Selections will appear here...");
+        outputArea.setPrefHeight(150);
 
-        Scene scene = new Scene(root, 400, 300);
+        root.getChildren().add(outputArea);
 
-        // Keyboard handling
-        scene.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.UP) {
-                selectedIndex = (selectedIndex - 1 + items.length) % items.length;
-                refreshHighlight();
-            } else if (event.getCode() == KeyCode.DOWN) {
-                selectedIndex = (selectedIndex + 1) % items.length;
-                refreshHighlight();
-            } else if (event.getCode() == KeyCode.ENTER) {
-                System.out.println("Selected: " + items[selectedIndex]);
-            }
-        });
+        refreshHighlight(); // highlight starting item
 
+        Scene scene = new Scene(root, 400, 450);
         stage.setTitle("Restaurant Menu");
         stage.setScene(scene);
         stage.show();
@@ -54,10 +61,21 @@ public class RestaurantMenu {
     private void refreshHighlight() {
         for (int i = 0; i < labels.length; i++) {
             if (i == selectedIndex) {
-                labels[i].setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-background-color: lightgray;");
+                labels[i].setStyle(
+                        "-fx-font-size: 16px; " +
+                                "-fx-font-weight: bold; " +
+                                "-fx-background-color: lightgray; " +
+                                "-fx-padding: 5px;"
+                );
             } else {
-                labels[i].setStyle("-fx-font-size: 16px;");
+                labels[i].setStyle(
+                        "-fx-font-size: 16px; -fx-padding: 5px;"
+                );
             }
         }
+    }
+
+    private void showSelected(MenuItem item) {
+        outputArea.appendText("Selected: " + item + "\n");
     }
 }
