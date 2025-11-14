@@ -6,21 +6,43 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 
 public class RestaurantMenu {
 
-    private final MenuItem[] items = MenuItem.values();
-    private final Label[] labels = new Label[items.length];
+    private final ArrayList<Dish> menuItems = new ArrayList<>();
+    private final ArrayList<Label> labels = new ArrayList<>();
 
-    private ListView<MenuItem> selectedList;
+    private ListView<Dish> selectedList;
     private Label totalLabel;
 
     private double totalPrice = 0.0;
+
+    public RestaurantMenu() {
+        loadMenuFromFile("Menu.txt");
+    }
+
+    // Load menu dynamically from Menu.txt
+    private void loadMenuFromFile(String filePath) {
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (!line.isBlank()) {
+                    String[] parts = line.split(",");
+                    if (parts.length == 2) {
+                        String name = parts[0].trim();
+                        double price = Double.parseDouble(parts[1].trim());
+                        menuItems.add(new Dish(name, price));
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public void start(Stage stage) {
 
@@ -32,14 +54,13 @@ public class RestaurantMenu {
         root.getChildren().add(title);
 
         // MENU ITEMS WITH HOVER + CLICK
-        for (int i = 0; i < items.length; i++) {
-            MenuItem menuItem = items[i];
-            Label label = new Label(menuItem.toString());
+        for (Dish dish : menuItems) {
+            Label label = new Label(dish.toString());
             label.setStyle("-fx-font-size: 16px; -fx-padding: 5px;");
-            labels[i] = label;
+            labels.add(label);
 
             // add on click
-            label.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> addItem(menuItem));
+            label.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> addItem(dish));
 
             // hover effects
             label.setOnMouseEntered(e -> label.setStyle(
@@ -80,16 +101,16 @@ public class RestaurantMenu {
         stage.show();
     }
 
-    // Add item to ListView
-    private void addItem(MenuItem item) {
-        selectedList.getItems().add(item);
-        totalPrice += item.getPrice();
+    // Add dish to ListView
+    private void addItem(Dish dish) {
+        selectedList.getItems().add(dish);
+        totalPrice += dish.getPrice();
         updateTotal();
     }
 
     // Remove currently selected item
     private void removeSelectedItem() {
-        MenuItem selected = selectedList.getSelectionModel().getSelectedItem();
+        Dish selected = selectedList.getSelectionModel().getSelectedItem();
         if (selected == null) return;
 
         selectedList.getItems().remove(selected);
@@ -119,8 +140,8 @@ public class RestaurantMenu {
             // Write the order to the file
             try (FileWriter writer = new FileWriter(orderFile)) {
                 writer.write("=== ORDER ===\n\n");
-                for (MenuItem item : selectedList.getItems()) {
-                    writer.write(item.toString() + "\n");
+                for (Dish dish : selectedList.getItems()) {
+                    writer.write(dish.toString() + "\n");
                 }
                 writer.write(String.format("\nTotal: %.2f RON\n", totalPrice));
                 writer.write("Ticket issued on: " + timestamp + "\n");
@@ -151,3 +172,4 @@ public class RestaurantMenu {
         alert.showAndWait();
     }
 }
+
