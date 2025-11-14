@@ -10,6 +10,8 @@ import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RestaurantMenu {
 
@@ -46,9 +48,9 @@ public class RestaurantMenu {
                 }
             }
         } catch (IOException e) {
-            showAlert("Error reading menu file: " + e.getMessage());
+            showAlertAndExit("Error reading menu file: " + e.getMessage());
         } catch (NumberFormatException e) {
-            showAlert("Invalid price format in menu file: " + e.getMessage());
+            showAlertAndExit("Invalid price format in menu file: " + e.getMessage());
         }
     }
 
@@ -103,7 +105,13 @@ public class RestaurantMenu {
         removeButton.setOnAction(e -> removeSelectedItem());
         root.getChildren().add(removeButton);
 
-        Scene scene = new Scene(root, 420, 600);
+        // MOST POPULAR DISH BUTTON
+        Button mostPopularButton = new Button("Most Popular Dish");
+        mostPopularButton.setStyle("-fx-font-size: 16px;");
+        mostPopularButton.setOnAction(e -> generateDishReview());
+        root.getChildren().add(mostPopularButton);
+
+        Scene scene = new Scene(root, 450, 650);
         stage.setScene(scene);
         stage.setTitle("Restaurant Menu");
         stage.show();
@@ -136,9 +144,7 @@ public class RestaurantMenu {
         try {
             // Ensure "orders" folder exists
             File folder = new File("orders");
-            if (!folder.exists()) {
-                folder.mkdir();
-            }
+            if (!folder.exists()) folder.mkdir();
 
             // Create timestamped filename
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy(HH:mm)");
@@ -179,6 +185,7 @@ public class RestaurantMenu {
         alert.setContentText(msg);
         alert.showAndWait();
     }
+
     // Show alert and exit app
     private void showAlertAndExit(String msg) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -187,5 +194,47 @@ public class RestaurantMenu {
         alert.showAndWait();  // Wait for user to close the alert
         System.exit(0);       // Exit application
     }
-}
 
+    // Generate dish review file
+    private void generateDishReview() {
+        File folder = new File("orders");
+        if (!folder.exists() || folder.listFiles() == null) {
+            showAlert("No orders found to generate review.");
+            return;
+        }
+
+        Map<String, Integer> dishCount = new HashMap<>();
+        for (Dish dish : menuItems) dishCount.put(dish.getName(), 0);
+
+        File[] files = folder.listFiles((dir, name) -> name.endsWith(".txt"));
+        if (files != null) {
+            for (File file : files) {
+                try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        for (String name : dishCount.keySet()) {
+                            if (line.contains(name)) dishCount.put(name, dishCount.get(name) + 1);
+                        }
+                    }
+                } catch (IOException e) {
+                    showAlert("Error reading file: " + file.getName());
+                    return;
+                }
+            }
+        }
+
+        // Write dish review file
+        File reviewFile = new File("Dish review.txt");
+        try (FileWriter writer = new FileWriter(reviewFile)) {
+            for (Map.Entry<String, Integer> entry : dishCount.entrySet()) {
+                String bar = "*".repeat(entry.getValue());
+                writer.write(String.format("%s: %s (%d)%n", entry.getKey(), bar, entry.getValue()));
+            }
+        } catch (IOException e) {
+            showAlert("Error writing Dish review file.");
+            return;
+        }
+
+        showAlert("Dish review generated in Dish review.txt");
+    }
+}
