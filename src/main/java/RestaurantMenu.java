@@ -13,6 +13,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartUtils;
+import org.jfree.chart.JFreeChart;
+import org.jfree.data.category.DefaultCategoryDataset;
+
 public class RestaurantMenu {
 
     private final ArrayList<Dish> menuItems = new ArrayList<>();
@@ -203,6 +208,7 @@ public class RestaurantMenu {
             return;
         }
 
+        // Count number of orders for each dish
         Map<String, Integer> dishCount = new HashMap<>();
         for (Dish dish : menuItems) dishCount.put(dish.getName(), 0);
 
@@ -223,18 +229,28 @@ public class RestaurantMenu {
             }
         }
 
-        // Write dish review file
-        File reviewFile = new File("Dish review.txt");
-        try (FileWriter writer = new FileWriter(reviewFile)) {
-            for (Map.Entry<String, Integer> entry : dishCount.entrySet()) {
-                String bar = "*".repeat(entry.getValue());
-                writer.write(String.format("%s: %s (%d)%n", entry.getKey(), bar, entry.getValue()));
-            }
+        // Create JFreeChart dataset
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        dishCount.forEach((dish, count) -> dataset.addValue(count, "Orders", dish));
+
+        // Create bar chart
+        JFreeChart chart = ChartFactory.createBarChart(
+                "Most Popular Dishes",
+                "Dish",
+                "Orders",
+                dataset
+        );
+
+        // Save chart as PNG
+        File outputFile = new File("DishReview.png");
+        try {
+            ChartUtils.saveChartAsPNG(outputFile, chart, 800, 600);
         } catch (IOException e) {
-            showAlert("Error writing Dish review file.");
+            showAlert("Error saving DishReview.png");
             return;
         }
 
-        showAlert("Dish review generated in Dish review.txt");
+        showAlert("Dish review chart generated: DishReview.png");
     }
+
 }
