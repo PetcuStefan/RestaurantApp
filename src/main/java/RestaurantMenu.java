@@ -8,11 +8,9 @@ import javafx.stage.Stage;
 
 public class RestaurantMenu {
 
-    private int selectedIndex = 0;
     private final MenuItem[] items = MenuItem.values();
     private final Label[] labels = new Label[items.length];
 
-    // Area to show output
     private TextArea outputArea;
 
     public void start(Stage stage) {
@@ -24,7 +22,6 @@ public class RestaurantMenu {
 
         root.getChildren().add(title);
 
-        // Create UI labels for each menu item
         for (int i = 0; i < items.length; i++) {
             Label label = new Label(items[i].toString());
             label.setStyle("-fx-font-size: 16px; -fx-padding: 5px;");
@@ -32,17 +29,33 @@ public class RestaurantMenu {
 
             final int index = i;
 
-            // 💡 CLICK HANDLER
+            // CLICK HANDLER (just prints, no selection)
             label.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
-                selectedIndex = index;
-                refreshHighlight();
                 showSelected(items[index]);
+            });
+
+            // HOVER EFFECT
+            label.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> {
+                label.setStyle(
+                        "-fx-font-size: 16px; " +
+                                "-fx-padding: 5px; " +
+                                "-fx-background-color: lightgray; " +
+                                "-fx-font-weight: bold; " +
+                                "-fx-cursor: hand;"
+                );
+            });
+
+            // REMOVE HOVER EFFECT
+            label.addEventHandler(MouseEvent.MOUSE_EXITED, e -> {
+                label.setStyle(
+                        "-fx-font-size: 16px; " +
+                                "-fx-padding: 5px;"
+                );
             });
 
             root.getChildren().add(label);
         }
 
-        // Text output area
         outputArea = new TextArea();
         outputArea.setEditable(false);
         outputArea.setPromptText("Selections will appear here...");
@@ -50,29 +63,10 @@ public class RestaurantMenu {
 
         root.getChildren().add(outputArea);
 
-        refreshHighlight(); // highlight starting item
-
         Scene scene = new Scene(root, 400, 450);
         stage.setTitle("Restaurant Menu");
         stage.setScene(scene);
         stage.show();
-    }
-
-    private void refreshHighlight() {
-        for (int i = 0; i < labels.length; i++) {
-            if (i == selectedIndex) {
-                labels[i].setStyle(
-                        "-fx-font-size: 16px; " +
-                                "-fx-font-weight: bold; " +
-                                "-fx-background-color: lightgray; " +
-                                "-fx-padding: 5px;"
-                );
-            } else {
-                labels[i].setStyle(
-                        "-fx-font-size: 16px; -fx-padding: 5px;"
-                );
-            }
-        }
     }
 
     private void showSelected(MenuItem item) {
