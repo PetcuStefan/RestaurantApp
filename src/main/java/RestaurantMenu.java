@@ -27,7 +27,13 @@ public class RestaurantMenu {
 
     // Load menu dynamically from Menu.txt
     private void loadMenuFromFile(String filePath) {
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+        File menuFile = new File(filePath);
+        if (!menuFile.exists()) {
+            showAlertAndExit("Menu file not found");
+            return;
+        }
+
+        try (BufferedReader br = new BufferedReader(new FileReader(menuFile))) {
             String line;
             while ((line = br.readLine()) != null) {
                 if (!line.isBlank()) {
@@ -40,7 +46,9 @@ public class RestaurantMenu {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            showAlert("Error reading menu file: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            showAlert("Invalid price format in menu file: " + e.getMessage());
         }
     }
 
@@ -170,6 +178,14 @@ public class RestaurantMenu {
         alert.setHeaderText(null);
         alert.setContentText(msg);
         alert.showAndWait();
+    }
+    // Show alert and exit app
+    private void showAlertAndExit(String msg) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setHeaderText(null);
+        alert.setContentText(msg);
+        alert.showAndWait();  // Wait for user to close the alert
+        System.exit(0);       // Exit application
     }
 }
 
