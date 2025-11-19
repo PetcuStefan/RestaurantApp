@@ -5,7 +5,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         RestaurantMenu menu = new RestaurantMenu();
-        menu.start(primaryStage);   // RestaurantMenu handles the UI
+        menu.start(primaryStage);
     }
 
     public static void main(String[] args) {

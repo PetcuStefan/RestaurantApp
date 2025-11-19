@@ -32,7 +32,6 @@ public class RestaurantMenu {
         loadMenuFromFile("Menu.txt");
     }
 
-    // Load menu dynamically from Menu.txt
     private void loadMenuFromFile(String filePath) {
         File menuFile = new File(filePath);
         if (!menuFile.exists()) {
@@ -68,16 +67,13 @@ public class RestaurantMenu {
         title.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
         root.getChildren().add(title);
 
-        // MENU ITEMS WITH HOVER + CLICK
         for (Dish dish : menuItems) {
             Label label = new Label(dish.toString());
             label.setStyle("-fx-font-size: 16px; -fx-padding: 5px;");
             labels.add(label);
 
-            // add on click
             label.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> addItem(dish));
 
-            // hover effects
             label.setOnMouseEntered(e -> label.setStyle(
                     "-fx-font-size: 16px; -fx-padding: 5px; -fx-background-color: lightgray; -fx-font-weight: bold; -fx-cursor: hand;"
             ));
@@ -86,12 +82,10 @@ public class RestaurantMenu {
             root.getChildren().add(label);
         }
 
-        // LISTVIEW FOR SELECTED ITEMS
         selectedList = new ListView<>();
         selectedList.setPrefHeight(180);
         root.getChildren().add(selectedList);
 
-        // HBOX WITH TOTAL + PLACE ORDER BUTTON
         HBox bottomArea = new HBox(20);
 
         totalLabel = new Label("Total: 0.00 RON");
@@ -104,13 +98,11 @@ public class RestaurantMenu {
         bottomArea.getChildren().addAll(totalLabel, placeOrderButton);
         root.getChildren().add(bottomArea);
 
-        // REMOVE BUTTON (removes selected from ListView)
         Button removeButton = new Button("Remove Selected Item");
         removeButton.setStyle("-fx-font-size: 16px;");
         removeButton.setOnAction(e -> removeSelectedItem());
         root.getChildren().add(removeButton);
 
-        // MOST POPULAR DISH BUTTON
         Button mostPopularButton = new Button("Most Popular Dish");
         mostPopularButton.setStyle("-fx-font-size: 16px;");
         mostPopularButton.setOnAction(e -> generateDishReview());
@@ -122,14 +114,12 @@ public class RestaurantMenu {
         stage.show();
     }
 
-    // Add dish to ListView
     private void addItem(Dish dish) {
         selectedList.getItems().add(dish);
         totalPrice += dish.getPrice();
         updateTotal();
     }
 
-    // Remove currently selected item
     private void removeSelectedItem() {
         Dish selected = selectedList.getSelectionModel().getSelectedItem();
         if (selected == null) return;
@@ -139,7 +129,6 @@ public class RestaurantMenu {
         updateTotal();
     }
 
-    // WRITE ORDER TO TXT AND RESET LIST
     private void placeOrder() {
         if (selectedList.getItems().isEmpty()) {
             showAlert("No items selected!");
@@ -147,16 +136,13 @@ public class RestaurantMenu {
         }
 
         try {
-            // Ensure "orders" folder exists
             File folder = new File("orders");
             if (!folder.exists()) folder.mkdir();
 
-            // Create timestamped filename
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy(HH:mm)");
             String timestamp = LocalDateTime.now().format(formatter);
             File orderFile = new File(folder, "Order:" + timestamp + ".txt");
 
-            // Write the order to the file
             try (FileWriter writer = new FileWriter(orderFile)) {
                 writer.write("=== ORDER ===\n\n");
                 for (Dish dish : selectedList.getItems()) {
@@ -172,7 +158,6 @@ public class RestaurantMenu {
             return;
         }
 
-        // Clear selection + reset total
         selectedList.getItems().clear();
         totalPrice = 0.0;
         updateTotal();
@@ -191,7 +176,6 @@ public class RestaurantMenu {
         alert.showAndWait();
     }
 
-    // Show alert and exit app
     private void showAlertAndExit(String msg) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setHeaderText(null);
@@ -200,7 +184,6 @@ public class RestaurantMenu {
         System.exit(0);       // Exit application
     }
 
-    // Generate dish review file
     private void generateDishReview() {
         File folder = new File("orders");
         if (!folder.exists() || folder.listFiles() == null) {
@@ -208,7 +191,6 @@ public class RestaurantMenu {
             return;
         }
 
-        // Count number of orders for each dish
         Map<String, Integer> dishCount = new HashMap<>();
         for (Dish dish : menuItems) dishCount.put(dish.getName(), 0);
 
@@ -229,11 +211,9 @@ public class RestaurantMenu {
             }
         }
 
-        // Create JFreeChart dataset
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         dishCount.forEach((dish, count) -> dataset.addValue(count, "Orders", dish));
 
-        // Create bar chart
         JFreeChart chart = ChartFactory.createBarChart(
                 "Most Popular Dishes",
                 "Dish",
@@ -241,7 +221,6 @@ public class RestaurantMenu {
                 dataset
         );
 
-        // Save chart as PNG
         File outputFile = new File("DishReview.png");
         try {
             ChartUtils.saveChartAsPNG(outputFile, chart, 800, 600);
